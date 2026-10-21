@@ -107,7 +107,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .z small{font-size:.8em;opacity:.95}
 .z.buffed{box-shadow:0 0 0 2px var(--hazard)}
 .more{font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.6);border-radius:4px;padding:0 3px;align-self:center}
-.browncoat{--zc:#6c8a73}.conehead{--zc:#c47a2c}.buckethead{--zc:#6f7d8f}.flag{--zc:#a33f3f}
+.browncoat{--zc:#6c8a73}.conehead{--zc:#c47a2c}.buckethead{--zc:#6f7d8f}.flag{--zc:#a33f3f}.polevault{--zc:#8a6d3b}
+.z.chilled{box-shadow:0 0 0 2px #7fd3ff;filter:saturate(.6) brightness(1.1)}
+.pea.ice{background:#bfe9ff;border-color:#3a87b5}
+.boom{position:fixed;border-radius:50%;background:radial-gradient(circle,rgba(255,236,150,.95),rgba(255,120,40,.75) 45%,rgba(200,40,20,0) 72%);pointer-events:none}
 .sw{display:inline-block;width:12px;height:12px;border-radius:4px;background:var(--zc)}
 .flash{animation:flash .6s ease}
 @keyframes flash{0%{filter:brightness(1.8)}100%{filter:none}}
@@ -210,6 +213,26 @@ table.waves tfoot td{font-weight:700}
 .lastCard .nm{font-family:var(--display);font-size:17px}
 .lastCard .ds{font-size:13px;color:var(--muted)}
 .ratio{font-weight:700;font-size:13px}
+.levelMap{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:12px}
+.levelCard{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"num title" "z z" "info info";gap:6px 10px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.levelCard:not(:disabled):hover{border-color:var(--accent)}
+.levelCard:disabled{opacity:.5;cursor:not-allowed}
+.levelCard.done{border-color:var(--ok)}
+.lvNum{grid-area:num;width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px}
+.levelCard.done .lvNum{background:var(--ok);color:#fff}
+.lvTitle{grid-area:title;font-size:12px;color:var(--muted);line-height:1.25}
+.lvTitle b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--fg)}
+.lvZ{grid-area:z;display:flex;gap:4px;flex-wrap:wrap}
+.lvZ .z,.pickZ .z{position:static;width:24px;height:24px;font-size:9px}
+.lvInfo{grid-area:info;font-size:12px;color:var(--muted)}
+.pickZs{display:flex;flex-wrap:wrap;gap:8px 16px}
+.pickZ{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.coinBig{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#ffe9a8,#c9971e);box-shadow:0 0 0 3px rgba(201,151,30,.25)}
+.shopItems{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.shopItem{display:grid;grid-template-columns:48px 1fr;gap:8px 12px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+.shopItem svg{width:48px;height:48px}
+.shopItem .btn{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:6px}
+.shopItem.owned{border-color:var(--ok)}
 .alm{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
 .alm th,.alm td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .alm th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
@@ -230,17 +253,39 @@ table.waves tfoot td{font-weight:700}
     </div>
     <div class="controls">
       <div class="tabs" role="tablist">
-        <button role="tab" id="tabPlay" aria-selected="true">Play</button>
-        <button role="tab" id="tabVersus" aria-selected="false">Online versus</button>
-        <button role="tab" id="tabDesign" aria-selected="false">Level designer</button>
+        <button role="tab" id="tabPlay" aria-selected="true">Story</button>
+        <button role="tab" id="tabVersus" aria-selected="false">Versus</button>
+        <button role="tab" id="tabShop" aria-selected="false">Shop</button>
+        <button role="tab" id="tabDesign" aria-selected="false">Level editor</button>
       </div>
       <button class="btn" id="openAlmanac">Almanac</button>
-      <button class="btn" id="newGame">Restart level</button>
+      <button class="btn" id="toMap" hidden>Level map</button>
+      <button class="btn" id="newGame" hidden>Restart level</button>
     </div>
   </header>
 
+  <!-- ===================== STORY MAP ===================== -->
+  <div id="storyMap" class="wrap" style="max-width:none">
+    <div class="panelHead">
+      <div><h2 style="font-size:26px">Day chapter</h2><p class="note" id="mapNote"></p></div>
+      <span class="stat"><span class="coinBig"></span><b id="mapCoins">0</b><span class="lbl">coins</span></span>
+    </div>
+    <div class="levelMap" id="levelMap"></div>
+    <p class="note">Progress and coins are saved in this browser. Clear a level to open the next one.</p>
+  </div>
+
+  <!-- ===================== SHOP ===================== -->
+  <div id="shopView" class="wrap" style="max-width:none" hidden>
+    <div class="panelHead">
+      <div><h2 style="font-size:26px">Shop</h2><p class="note">Earn coins by clearing Story levels. Upgrades you buy here appear in the upgrade tray in every Story level.</p></div>
+      <span class="stat"><span class="coinBig"></span><b id="shopCoins">0</b><span class="lbl">coins</span></span>
+    </div>
+    <div class="shopItems" id="shopItems"></div>
+    <p class="note">More items are coming.</p>
+  </div>
+
   <!-- ===================== PLAY ===================== -->
-  <div id="playView" class="wrap" style="max-width:none">
+  <div id="playView" class="wrap" style="max-width:none" hidden>
     <div class="status">
       <div class="stat"><span class="sunDot"></span><b id="sun">0</b><span class="lbl">sun</span></div>
       <div class="stat"><span class="lbl">Turn</span><b id="turn">1</b></div>
@@ -288,6 +333,7 @@ table.waves tfoot td{font-weight:700}
     <details>
       <summary>How to play</summary>
       <ul>
+        <li><b>Modes.</b> Story is a 10-level Day chapter that unlocks plants as you go. Versus pits a Plants player against a Zombies player. The Shop sells upgrades for coins earned in Story. The Level editor builds your own levels. The Almanac lists every plant and zombie.</li>
         <li><b>Goal.</b> Survive every wave and clear the final wave. Each row has one lawnmower that fires once if a zombie reaches it. If a zombie gets past a used mower, you lose.</li>
         <li><b>Start of turn.</b> You get 25 sun from the sky, and seed packet and Glove cooldowns go down by 1.</li>
         <li><b>Your turn.</b> As often as you can afford: plant a seed packet, shovel a plant away (free), move a plant with the Glove (50 sun, 2-turn cooldown), or buy an upgrade (Repeater, Gatling Pea, Twin Sunflower, Tough Bark).</li>
@@ -439,7 +485,22 @@ table.waves tfoot td{font-weight:700}
   <div class="box">
     <h2 id="ovTitle"></h2>
     <p id="ovText"></p>
-    <button class="btn primary" id="ovBtn">Play again</button>
+    <div class="controls" style="justify-content:center">
+      <button class="btn primary" id="ovNext" hidden>Next level</button>
+      <button class="btn" id="ovBtn">Play again</button>
+      <button class="btn" id="ovMap" hidden>Level map</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="seedPick" role="dialog" aria-modal="true" aria-labelledby="pickTitle" hidden style="z-index:7">
+  <div class="cardBox">
+    <div class="panelHead"><h2 id="pickTitle"></h2><button class="btn" id="pickCancel">Back</button></div>
+    <h3>Zombies in this level</h3>
+    <div class="pickZs" id="pickZombies"></div>
+    <h3>Your seed packets</h3>
+    <p class="note" id="pickHelp"></p>
+    <div class="tray" id="pickPlants"></div>
+    <div class="controls" style="justify-content:flex-end"><button class="btn primary" id="pickStart">Let's rock!</button></div>
   </div>
 </div>
 
@@ -456,18 +517,23 @@ table.waves tfoot td{font-weight:700}
   "firstWaveTurn": 4,
   "waveTrigger": 0.5,
   "lawnmowers": true,
-  "seedPackets": ["sunflower", "peashooter", "wallnut"],
-  "upgrades": ["repeater", "gatling", "twinSunflower", "toughBark"],
-  "glove": { "cost": 50, "cooldown": 2 },
+  "glove": {
+    "cost": 50,
+    "cooldown": 2
+  },
   "surgeCost": 25,
   "setup": [],
-  "zombies": { "browncoat": 12, "flag": 1 },
+  "finalWaveLeader": "flag",
+  "seedPackets": ["peashooter", "sunflower"],
+  "upgrades": [],
+  "zombies": {
+    "browncoat": 8,
+    "flag": 1
+  },
   "waves": [
     { "browncoat": 2 },
-    { "browncoat": 3 },
     { "browncoat": 3 }
   ],
-  "finalWaveLeader": "flag",
   "cards": {
     "firstTurn": 4,
     "every": 3,
@@ -477,8 +543,19 @@ table.waves tfoot td{font-weight:700}
     "rerollCost": 50,
     "instantSun": 500,
     "deck": {
-      "horde": 3, "toughCrowd": 2, "doubleSpeed": 2, "frozenTime": 2, "sprint": 3, "gardeningAccident": 2, "sunDrought": 2,
-      "attackSpeed": 2, "instantSun": 1, "distracted": 1, "powerPeas": 2, "freshSeeds": 1, "mowerRepair": 1
+      "horde": 3,
+      "toughCrowd": 2,
+      "doubleSpeed": 2,
+      "frozenTime": 2,
+      "sprint": 3,
+      "gardeningAccident": 2,
+      "sunDrought": 2,
+      "attackSpeed": 2,
+      "instantSun": 1,
+      "distracted": 1,
+      "powerPeas": 2,
+      "freshSeeds": 1,
+      "mowerRepair": 1
     }
   }
 }
@@ -489,6 +566,7 @@ table.waves tfoot td{font-weight:700}
    PLANTS. Static fields are stats. actEvery = turns between actions
    (0 = never acts). recharge = seed packet cooldown after planting.
    ========================================================================= */
+const KILL = 9999;   // damage that destroys anything (Cherry Bomb, Potato Mine, Chomper)
 class Plant {
   static key = 'plant'; static label = 'Plant';
   static cost = 0; static recharge = 0; static maxHp = 2; static actEvery = 0;
@@ -496,6 +574,12 @@ class Plant {
   constructor(){ const C = this.constructor; this.type = C.key; this.maxHp = C.maxHp; this.hp = C.maxHp; this.timer = C.actEvery; }
   get cls(){ return this.constructor; }
   act(game, row, col){}
+  // Called when a zombie bites this plant. Return true if the plant handled it (no damage taken).
+  onBitten(game, z, row, col){ return false; }
+  // Small label shown on the plant's tile.
+  badge(){ return this.cls.actEvery > 1 ? String(this.timer) : ''; }
+  // Extra per-plant state to keep in versus saves.
+  extra(){ return {}; }
 }
 class Sunflower extends Plant {
   static key = 'sunflower'; static label = 'Sunflower';
@@ -506,21 +590,61 @@ class Sunflower extends Plant {
 class TwinSunflower extends Sunflower { static key = 'twinsunflower'; static label = 'Twin Sunflower'; static cost = 150; static sun = 50; }
 class Peashooter extends Plant {
   static key = 'peashooter'; static label = 'Peashooter';
-  static cost = 100; static recharge = 1; static maxHp = 2; static actEvery = 1; static peas = 1; static damage = 1;
-  static get text(){ return `Fires ${this.peas} pea${this.peas>1?'s':''} for ${this.damage} each, every turn.`; }
+  static cost = 100; static recharge = 1; static maxHp = 2; static actEvery = 1; static peas = 1; static damage = 1; static chill = 0;
+  static get text(){ return `Fires ${this.peas} pea${this.peas>1?'s':''} for ${this.damage} damage each, every ${this.actEvery === 1 ? 'turn' : `${this.actEvery} turns`}. Unlimited range.`; }
   act(game, row, col){
     for (let i = 0; i < this.cls.peas; i++){
       const z = game.frontZombie(row, col); if (!z) break;
-      game.hitZombie(z, this.cls.damage, [row, col]);
+      game.hitZombie(z, this.cls.damage, [row, col], { chill:this.cls.chill });
     }
   }
 }
-class Repeater extends Peashooter { static key = 'repeater'; static label = 'Repeater'; static cost = 200; static recharge = 2; static peas = 2; }
+class Repeater extends Peashooter { static key = 'repeater'; static label = 'Repeater'; static cost = 200; static recharge = 1; static peas = 2; }
 class GatlingPea extends Peashooter { static key = 'gatling'; static label = 'Gatling Pea'; static cost = 250; static recharge = 3; static peas = 4; }
+class SnowPea extends Peashooter {
+  static key = 'snowpea'; static label = 'Snow Pea';
+  static cost = 175; static recharge = 1; static actEvery = 2; static chill = 3;
+  static get text(){ return `Fires a frozen pea every ${this.actEvery} turns for ${this.damage} damage. Unlimited range. Chilled zombies take one extra turn per tile for ${this.chill} turns.`; }
+}
 class WallNut extends Plant {
   static key = 'wallnut'; static label = 'Wall-nut';
-  static cost = 50; static recharge = 3; static maxHp = 16; static actEvery = 0;
+  static cost = 50; static recharge = 3; static maxHp = 10; static actEvery = 0;
   static get text(){ return `Blocks zombies. ${this.maxHp} health.`; }
+}
+class CherryBomb extends Plant {
+  static key = 'cherrybomb'; static label = 'Cherry Bomb';
+  static cost = 150; static recharge = 5; static maxHp = 2; static actEvery = 1;
+  static get text(){ return 'Explodes at the end of the turn you plant it, destroying every zombie in the 3×3 area around it.'; }
+  act(game, row, col){ game.removePlant(row, col); game.explode(row, col, 1, this.cls.label); }
+  badge(){ return 'boom'; }
+}
+class PotatoMine extends Plant {
+  static key = 'potatomine'; static label = 'Potato Mine';
+  static cost = 25; static recharge = 3; static maxHp = 2; static actEvery = 1; static armTurns = 2;
+  static get text(){ return `Takes ${this.armTurns} turns to arm. Once armed, the first zombie to bite it is destroyed, along with anything on its tile.`; }
+  constructor(){ super(); this.arm = this.cls.armTurns; }
+  act(){ if (this.arm > 0) this.arm--; }
+  onBitten(game, z, row, col){
+    if (this.arm > 0) return false;
+    game.removePlant(row, col);
+    game.blast([[row, col], [row, z.col]], [row, col], 0, this.cls.label);
+    return true;
+  }
+  badge(){ return this.arm > 0 ? `arm ${this.arm}` : 'armed'; }
+  extra(){ return { arm:this.arm }; }
+}
+class Chomper extends Plant {
+  static key = 'chomper'; static label = 'Chomper';
+  static cost = 150; static recharge = 2; static maxHp = 2; static actEvery = 1; static chewTurns = 2;
+  static get text(){ return `Swallows the zombie on the tile right in front of it, whatever its health. Then chews for ${this.chewTurns} turns before it can eat again.`; }
+  constructor(){ super(); this.chew = 0; }
+  act(game, row, col){
+    if (this.chew > 0){ this.chew--; return; }
+    const z = game.zombies.filter(x => x.row === row && x.col === col + 1).sort((a,b) => a.id - b.id)[0];
+    if (z){ game.devour(z, [row, col]); this.chew = this.cls.chewTurns; }
+  }
+  badge(){ return this.chew ? `chew ${this.chew}` : ''; }
+  extra(){ return { chew:this.chew }; }
 }
 
 /* =========================================================================
@@ -530,6 +654,7 @@ class Zombie {
   static key = 'zombie'; static label = 'Zombie'; static short = 'Z';
   static maxHp = 10; static speed = 2; static bite = 1;
   static brains = 50; static recharge = 1;   // versus mode: cost and cooldown for the zombie player
+  static armor = 0; static special = '';     // armor = health on top of the 10-hit body (cone, bucket)
   constructor(row, col){
     const C = this.constructor;
     this.type = C.key; this.maxHp = C.maxHp; this.hp = C.maxHp; this.row = row; this.col = col;
@@ -543,18 +668,42 @@ class Zombie {
     if (p){ game.bite(this, p, next); return 'bite'; }
     this.col = next; return 'moved';
   }
+  // Turns per tile right now: own speed, plus one while chilled by a Snow Pea.
+  curSpeed(){ return (this.speed ?? this.cls.speed) + (this.chill > 0 ? 1 : 0); }
   takeTurn(game){
     const steps = game.fx.speedTurns > 0 ? 2 : 1;   // Double Speed wildcard
     for (let s = 0; s < steps; s++){
       const p = game.plantAt(this.row, this.col - 1);
-      if (p){ if (s === 0) game.bite(this, p, this.col - 1); return; }
-      if (--this.moveTimer <= 0){ this.moveTimer = this.speed ?? this.cls.speed; if (this.step(game) !== 'moved') return; }
+      if (p){ if (s === 0) game.bite(this, p, this.col - 1); break; }
+      if (--this.moveTimer <= 0){ this.moveTimer = this.curSpeed(); if (this.step(game) !== 'moved') break; }
     }
+    if (this.chill > 0) this.chill--;
   }
 }
 class Browncoat  extends Zombie { static key = 'browncoat';  static label = 'Browncoat Zombie';  static short = 'B';  static maxHp = 10; }
-class Conehead   extends Zombie { static key = 'conehead';   static label = 'Conehead Zombie';   static short = 'C';  static maxHp = 28; static brains = 75;  static recharge = 2; }
-class Buckethead extends Zombie { static key = 'buckethead'; static label = 'Buckethead Zombie'; static short = 'Bk'; static maxHp = 65; static brains = 125; static recharge = 3; }
+class Conehead   extends Zombie { static key = 'conehead';   static label = 'Conehead Zombie';   static short = 'C';  static maxHp = 28; static armor = 18; static brains = 75;  static recharge = 2; }
+class Buckethead extends Zombie { static key = 'buckethead'; static label = 'Buckethead Zombie'; static short = 'Bk'; static maxHp = 48; static armor = 38; static brains = 125; static recharge = 3; }
+class PoleVaulter extends Zombie {
+  static key = 'polevault'; static label = 'Pole Vaulter'; static short = 'PV'; static maxHp = 28; static speed = 1; static afterVault = 2;
+  static brains = 75; static recharge = 2;
+  static special = 'Runs a tile every turn until it meets its first plant, then vaults over it and walks at normal speed.';
+  // Jump over the plant in front, landing on the tile behind it.
+  vault(game){
+    this.vaulted = true; this.speed = Math.max(this.speed ?? 0, this.cls.afterVault); this.moveTimer = this.curSpeed();
+    const land = this.col - 2;
+    if (land < 0){ this.col = 0; return game.reachEnd(this); }
+    if (game.plantAt(this.row, land)) return 'blocked';   // nowhere to land: it drops its pole and starts biting
+    this.col = land; game.log(`A ${this.cls.label} vaulted over your plant in row ${this.row+1}!`); return 'moved';
+  }
+  step(game){
+    if (!this.vaulted && game.plantAt(this.row, this.col - 1)) return this.vault(game);
+    return super.step(game);
+  }
+  takeTurn(game){
+    if (!this.vaulted && game.plantAt(this.row, this.col - 1)){ this.vault(game); if (this.chill > 0) this.chill--; return; }
+    super.takeTurn(game);
+  }
+}
 class FlagZombie extends Zombie { static key = 'flag';       static label = 'Flag Zombie';       static short = 'F';  static maxHp = 10; static speed = 1; static brains = 75; static recharge = 3; }
 
 /* =========================================================================
@@ -662,12 +811,6 @@ function upgradeTo(game, row, col, NewClass){
   p.maxHp += old.maxHp - old.cls.maxHp; p.hp = p.maxHp; p.timer = Math.min(old.timer, NewClass.actEvery);
   game.setPlant(row, col, p);
 }
-class RepeaterUp extends Upgrade {
-  static key = 'repeater'; static label = 'Repeater'; static cost = 200; static art = 'repeater';
-  static get text(){ return 'Turn a Peashooter into a Repeater (2 peas).'; }
-  static canApply(p){ return p.cls === Peashooter; }
-  static apply(g, r, c){ upgradeTo(g, r, c, Repeater); }
-}
 class GatlingUp extends Upgrade {
   static key = 'gatling'; static label = 'Gatling Pea'; static cost = 250; static art = 'gatling';
   static get text(){ return 'Turn a Repeater into a Gatling Pea (4 peas).'; }
@@ -692,11 +835,12 @@ class Lawn      { static key = 'day';   static label = 'Day';   static rows = 5;
 class PoolLawn  { static key = 'pool';  static label = 'Pool';  static rows = 6; static waterRows = [3, 4]; }
 class NightLawn { static key = 'night'; static label = 'Night'; static rows = 5; static waterRows = []; }
 
-const PLANTS    = { sunflower:Sunflower, peashooter:Peashooter, wallnut:WallNut, twinsunflower:TwinSunflower, repeater:Repeater, gatling:GatlingPea };
-const ZOMBIES   = { browncoat:Browncoat, conehead:Conehead, buckethead:Buckethead, flag:FlagZombie };
+const PLANTS    = { peashooter:Peashooter, sunflower:Sunflower, cherrybomb:CherryBomb, wallnut:WallNut, potatomine:PotatoMine, snowpea:SnowPea, chomper:Chomper, repeater:Repeater, twinsunflower:TwinSunflower, gatling:GatlingPea };
+const SEED_PLANTS = ['peashooter','sunflower','cherrybomb','wallnut','potatomine','snowpea','chomper','repeater'];   // plants that come as seed packets (the rest come from upgrades)
+const ZOMBIES   = { browncoat:Browncoat, flag:FlagZombie, conehead:Conehead, polevault:PoleVaulter, buckethead:Buckethead };
 const WILDCARDS = { horde:Horde, toughCrowd:ToughCrowd, doubleSpeed:DoubleSpeed, frozenTime:FrozenTime, sprint:Sprint, gardeningAccident:GardeningAccident, sunDrought:SunDrought };
 const BUFFS     = { attackSpeed:AttackSpeed, instantSun:InstantSun, distracted:Distracted, powerPeas:PowerPeas, freshSeeds:FreshSeeds, mowerRepair:MowerRepair };
-const UPGRADES  = { repeater:RepeaterUp, gatling:GatlingUp, twinSunflower:TwinSunflowerUp, toughBark:ToughBarkUp };
+const UPGRADES  = { gatling:GatlingUp, twinSunflower:TwinSunflowerUp, toughBark:ToughBarkUp };
 const LAWNS     = { day:Lawn, pool:PoolLawn, night:NightLawn };
 const CARDS     = { ...WILDCARDS, ...BUFFS };   // one deck: hazards and buffs mixed
 /* ========================================================================= */
@@ -725,12 +869,28 @@ const Game = {
   frontZombie(row, col){ return S.zombies.filter(z => z.row===row && z.col>=col).sort((a,b) => a.col-b.col || a.id-b.id)[0]; },
   zombiesFrontFirst(){ return [...S.zombies].sort((a,b) => a.col-b.col); },
   randomPlant(){ const ps = []; for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) if (S.lawn[r][c]) ps.push({ row:r, col:c, plant:S.lawn[r][c] }); return ps[Math.floor(Math.random()*ps.length)]; },
-  hitZombie(z, dmg, from){
-    if (from) S.events.push({ kind:'pea', from, to:[z.row, z.col], tick:S.tick, n:S.events.filter(e => e.kind==='pea' && e.from[0]===from[0] && e.from[1]===from[1] && e.tick===S.tick).length });
+  hitZombie(z, dmg, from, opts){
+    if (from) S.events.push({ kind:'pea', from, to:[z.row, z.col], tick:S.tick, ice:!!opts?.chill, n:S.events.filter(e => e.kind==='pea' && e.from[0]===from[0] && e.from[1]===from[1] && e.tick===S.tick).length });
     z.hp -= dmg * S.fx.dmgMult; flash(z.row, z.col);
-    if (z.hp <= 0){ S.zombies = S.zombies.filter(x => x !== z); z.dead = true; }
+    if (z.hp <= 0){ this.kill(z); return; }
+    if (opts?.chill){ if (!(z.chill > 0)) z.moveTimer += 1; z.chill = Math.max(z.chill || 0, opts.chill); }
   },
+  kill(z){ S.zombies = S.zombies.filter(x => x !== z); z.dead = true; },
+  // Destroy every zombie on the given tiles. Used by Cherry Bomb and Potato Mine.
+  blast(cells, center, radius, label){
+    const hit = S.zombies.filter(z => cells.some(([r, c]) => z.row === r && z.col === c));
+    hit.forEach(z => this.kill(z));
+    S.events.push({ kind:'boom', at:center, radius, tick:S.tick });
+    if (label) log(`${label} exploded in row ${center[0]+1}${hit.length ? ` and destroyed ${hit.length} zombie${hit.length===1?'':'s'}` : ''}!`);
+    return hit.length;
+  },
+  explode(r, c, radius, label){
+    const cells = []; for (let dr = -radius; dr <= radius; dr++) for (let dc = -radius; dc <= radius; dc++) cells.push([r+dr, c+dc]);
+    return this.blast(cells, [r, c], radius, label);
+  },
+  devour(z, at){ this.kill(z); S.events.push({ kind:'chomp', at, tick:S.tick }); log(`A Chomper swallowed a ${z.cls.label} in row ${at[0]+1}.`); },
   bite(z, p, col){
+    if (p.onBitten(this, z, z.row, col)) return;
     p.hp -= z.cls.bite; flash(z.row, col);
     if (p.hp <= 0){ S.lawn[z.row][col] = null; log(`A ${z.cls.label} ate your ${p.cls.label} in row ${z.row+1}.`); }
   },
@@ -990,10 +1150,10 @@ let FX_BOARD = 'board', FX_TOAST = 'toast';   // versus mode points these at its
 function cellRect(r, c){ return $(FX_BOARD).querySelector(`.cell[data-r="${r}"][data-c="${c}"]`)?.getBoundingClientRect(); }
 function zombieRects(){ const m = new Map(); $('board').querySelectorAll('[data-zid]').forEach(el => m.set(+el.dataset.zid, el.getBoundingClientRect())); return m; }
 function fxEl(cls, x, y){ const el = document.createElement('span'); el.className = cls; el.style.left = `${x}px`; el.style.top = `${y}px`; $('fxLayer').appendChild(el); return el; }
-function flyPea(from, to, delay){
+function flyPea(from, to, delay, ice){
   const a = cellRect(...from), b = cellRect(...to); if (!a || !b) return;
   const x0 = a.left + a.width*.72, y0 = a.top + a.height*.42, x1 = b.left + b.width*.5;
-  const el = fxEl('pea', x0, y0), dur = Math.max(180, Math.min(420, (x1 - x0) * .9));
+  const el = fxEl(ice ? 'pea ice' : 'pea', x0, y0), dur = Math.max(180, Math.min(420, (x1 - x0) * .9));
   el.animate([{ opacity:1, transform:'translateX(0)' }, { opacity:1, transform:`translateX(${x1 - x0}px)` }], { duration:dur, delay, easing:'linear', fill:'both' }).onfinish = () => el.remove();
 }
 function floatText(r, c, text, delay = 0){
@@ -1006,12 +1166,21 @@ function poof(rect){
   const el = fxEl('poof', rect.left + rect.width/2 - s/2, rect.top + rect.height/2 - s/2); el.style.width = el.style.height = `${s}px`;
   el.animate([{ opacity:.9, transform:'scale(.4)' }, { opacity:0, transform:'scale(1.3)' }], { duration:450, easing:'ease-out' }).onfinish = () => el.remove();
 }
+// Explosion flash covering the blast area.
+function boomAt(r, c, radius, delay = 0){
+  const a = cellRect(r, c); if (!a) return;
+  const size = a.width * (2 * radius + 1.6), el = fxEl('boom', a.left + a.width/2 - size/2, a.top + a.height/2 - size/2);
+  el.style.width = el.style.height = `${size}px`; el.style.opacity = 0;
+  el.animate([{ opacity:0, transform:'scale(.3)' }, { opacity:1, transform:'scale(1)', offset:.35 }, { opacity:0, transform:'scale(1.15)' }], { duration:650, delay, easing:'ease-out', fill:'both' }).onfinish = () => el.remove();
+}
 function playPlantEvents(){
   if (!motion()) return;
   for (const e of S.events){
     const delay = e.tick * 420 + (e.n || 0) * 90;
-    if (e.kind === 'pea') flyPea(e.from, e.to, delay);
+    if (e.kind === 'pea') flyPea(e.from, e.to, delay, e.ice);
     if (e.kind === 'sun') floatText(e.at[0], e.at[1], `+${e.n}`, delay);
+    if (e.kind === 'boom') boomAt(e.at[0], e.at[1], e.radius, delay);
+    if (e.kind === 'chomp') floatText(e.at[0], e.at[1], 'Chomp!', delay);
   }
 }
 async function toast(text, tone, ms){
@@ -1106,6 +1275,10 @@ const ART = {
   sunflower:`<svg class="piece" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 38V26" stroke="#2f6b22" stroke-width="3"/>${flower(20,17,1)}</svg>`,
   twinsunflower:`<svg class="piece" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 38V27M12 27l8 0 8 0" stroke="#2f6b22" stroke-width="3"/>${flower(11,16,.75)}${flower(29,16,.75)}</svg>`,
   peashooter: pod(1), repeater: pod(2), gatling: pod(4),
+  snowpea:`<svg class="piece" viewBox="0 0 40 40" aria-hidden="true"><path d="M5 27C9 16 21 10 35 12 32 23 19 30 5 27z" fill="#6fb8d9" stroke="#2c6a8a" stroke-width="2"/>${[[13,23],[20.5,19.5],[28,16.5]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.3" fill="#dff4ff" stroke="#2c6a8a" stroke-width="1.2"/>`).join('')}<path d="M33 6l2 3 3-1-2 3 2 3-3-1-2 3-1-3-3-1 3-2z" fill="#e6f7ff" stroke="#2c6a8a" stroke-width="1"/></svg>`,
+  cherrybomb:`<svg class="piece" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 6c-4 6-8 10-10 16M20 6c3 6 6 10 9 16" stroke="#3b7a22" stroke-width="2.5" fill="none"/><path d="M20 6c4-3 8-2 10 0-4 2-7 2-10 0z" fill="#5fb83f"/><circle cx="11" cy="27" r="8" fill="#d8352a" stroke="#7a1410" stroke-width="2"/><circle cx="28" cy="27" r="8" fill="#e8423a" stroke="#7a1410" stroke-width="2"/><circle cx="8.5" cy="24" r="2" fill="#ffb3a8"/><circle cx="25.5" cy="24" r="2" fill="#ffb3a8"/></svg>`,
+  potatomine:`<svg class="piece" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 10v-5" stroke="#555" stroke-width="2"/><circle cx="20" cy="5" r="2.6" fill="#e33"/><ellipse cx="20" cy="25" rx="14" ry="10" fill="#c99a5b" stroke="#7a5728" stroke-width="2"/><circle cx="13" cy="23" r="1.4" fill="#7a5728"/><circle cx="25" cy="28" r="1.4" fill="#7a5728"/><circle cx="21" cy="21" r="1.2" fill="#7a5728"/><path d="M4 33h32" stroke="#6e4a22" stroke-width="2.5"/></svg>`,
+  chomper:`<svg class="piece" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 38V26" stroke="#2f6b22" stroke-width="3"/><path d="M14 34c-4-2-6-5-6-8 4 1 6 3 6 8zM26 34c4-2 6-5 6-8-4 1-6 3-6 8z" fill="#3f8f2c"/><path d="M6 15C9 6 31 6 34 15L20 19z" fill="#8a3fa8" stroke="#4a1a5e" stroke-width="2"/><path d="M6 17c3 7 25 7 28 0L20 21z" fill="#a24fc4" stroke="#4a1a5e" stroke-width="2"/>${[9,13,17,21,25,29].map(x=>`<path d="M${x} 15.5l1.5 2.5 1.5-2.5" fill="#fff"/>`).join('')}</svg>`,
   wallnut:`<svg class="piece" viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="21" rx="13" ry="16" fill="#b9864a" stroke="#6e4a22" stroke-width="2"/><path d="M13 12c3 3 3 7 1 10M25 10c-2 4-1 8 2 11M18 28c2 2 5 2 7 0" stroke="#6e4a22" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`,
   bark:`<svg class="piece" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4l13 5v10c0 9-6 15-13 18C13 34 7 28 7 19V9z" fill="#9c7448" stroke="#5b3f22" stroke-width="2"/><path d="M14 13v12M20 10v18M26 13v12" stroke="#5b3f22" stroke-width="1.6" stroke-linecap="round"/></svg>`,
   shovel:`<svg viewBox="0 0 40 40" aria-hidden="true" width="34" height="34"><path d="M20 4v20" stroke="#7a5a3a" stroke-width="3"/><path d="M13 24h14l-2 10c-1 3-9 3-10 0z" fill="#9aa5ad" stroke="#5c666d" stroke-width="2"/><rect x="15" y="2" width="10" height="4" rx="2" fill="#7a5a3a"/></svg>`,
@@ -1130,12 +1303,12 @@ function boardHTML({ rows, cols, street, lawn, water, plantAt, zombiesAt, mowers
       let inner = '', label = `Row ${r+1}${water.has(r)?' (water)':''}, column ${c+1}`;
       if (p){
         inner = ART[p.type] + `<span class="hp">${p.hp}</span>`;
-        if (p.cls.actEvery > 1) inner += `<span class="tm">${p.timer}</span>`;
+        const bd = p.badge(); if (bd) inner += `<span class="tm">${bd}</span>`;
         if (p.maxHp > p.cls.maxHp) inner += `<span class="lvl">+${p.maxHp-p.cls.maxHp}</span>`;
         label += `, ${p.cls.label} ${p.hp} of ${p.maxHp} health`;
       }
       if (zs.length){
-        inner += `<div class="zs">${zs.slice(0,3).map(z => `<span data-zid="${z.id}" class="z ${z.type} ${zs.length===1&&!p?'solo':''} ${z.doubled?'buffed':''}" title="${z.cls.label} · ${z.hp} health">${z.cls.short}<small>${z.hp}</small></span>`).join('')}${zs.length>3?`<span class="more">+${zs.length-3}</span>`:''}</div>`;
+        inner += `<div class="zs">${zs.slice(0,3).map(z => `<span data-zid="${z.id}" class="z ${z.type} ${zs.length===1&&!p?'solo':''} ${z.doubled?'buffed':''} ${z.chill>0?'chilled':''}" title="${z.cls.label} · ${z.hp} health${z.chill>0?' · chilled':''}">${z.cls.short}<small>${z.hp}</small></span>`).join('')}${zs.length>3?`<span class="more">+${zs.length-3}</span>`:''}</div>`;
         label += `, ${zs.length} zombie${zs.length>1?'s':''}`;
       }
       h += `<button class="${cls}" style="grid-row:${r+2};grid-column:${c+3}" data-r="${r}" data-c="${c}" aria-label="${label}">${inner}</button>`;
@@ -1293,8 +1466,12 @@ function render(prev){
 
   if (S.over && !S.overShown){
     S.overShown = true; $('overlay').hidden = false;
-    $('ovTitle').textContent = S.over==='win' ? 'Level cleared!' : 'The zombies ate your brains!';
-    $('ovText').textContent = S.over==='win' ? `You survived ${LEVEL.name} in ${S.turn} turns.` : `They broke through on turn ${S.turn}.`;
+    const res = storyResult(), win = S.over === 'win';
+    $('ovTitle').textContent = win ? 'Level cleared!' : 'The zombies ate your brains!';
+    $('ovText').textContent = (win ? `You survived ${LEVEL.name} in ${S.turn} turns.` : `They broke through on turn ${S.turn}.`) + (res?.lines.length ? ' ' + res.lines.join(' ') : '');
+    $('ovBtn').textContent = win ? (RUN.kind === 'story' ? 'Replay level' : 'Play again') : 'Try again';
+    $('ovNext').hidden = !(win && res?.next);
+    $('ovMap').hidden = RUN.kind !== 'story';
   }
 }
 
@@ -1327,7 +1504,9 @@ $('kept').addEventListener('click', e => { const u = e.target.closest('[data-use
 $('cancel').addEventListener('click', () => { S.mode = null; render(); });
 $('endTurn').addEventListener('click', endTurn);
 $('newGame').addEventListener('click', () => { if (!S.busy) newGame(); });
-$('ovBtn').addEventListener('click', newGame);
+$('ovBtn').addEventListener('click', () => { $('overlay').hidden = true; newGame(); });
+$('ovNext').addEventListener('click', () => { $('overlay').hidden = true; showStoryScreen('map'); openSeedPick(RUN.index + 1); });
+$('ovMap').addEventListener('click', () => { $('overlay').hidden = true; showStoryScreen('map'); });
 document.addEventListener('keydown', e => { if (e.key==='Escape' && S.mode && !S.busy){ S.mode = null; render(); } });
 
 /* =========================================================================
@@ -1387,7 +1566,7 @@ function renderDesigner(){
 
   <section class="panel">
     <h2>Plants and tools</h2>
-    <h3>Seed packets</h3><div class="checks">${checks(PLANTS, L.seedPackets, 'seedPackets')}</div>
+    <h3>Seed packets</h3><div class="checks">${checks(Object.fromEntries(SEED_PLANTS.map(k => [k, PLANTS[k]])), L.seedPackets, 'seedPackets')}</div>
     <h3>Upgrades</h3><div class="checks">${checks(UPGRADES, L.upgrades, 'upgrades')}</div>
     <h3>Glove</h3>
     <div class="fields">${field('Extra cost per copy', 'surgeCost', L.surgeCost ?? 25, 'number', 'min="0" step="25"')}${field('Glove cost', 'glove.cost', L.glove.cost, 'number', 'min="0" step="25"')}${field('Glove cooldown', 'glove.cooldown', L.glove.cooldown, 'number', 'min="0"')}</div>
@@ -1524,7 +1703,7 @@ $('designer').addEventListener('click', async e => {
   if (t.id === 'removeLastWave'){ D.waves.pop(); return renderDesigner(); }
   const del = t.closest('[data-delwave]');
   if (del){ D.waves.splice(+del.dataset.delwave, 1); return renderDesigner(); }
-  if (t.id === 'dPlay'){ try { loadLevel(buildLevel()); showTab('play'); } catch(err){ $('dMsg').className = 'msg err'; $('dMsg').textContent = err.message; } return; }
+  if (t.id === 'dPlay'){ try { RUN = { kind:'custom', index:-1 }; loadLevel(buildLevel()); STORY_SCREEN = 'game'; showTab('story'); } catch(err){ $('dMsg').className = 'msg err'; $('dMsg').textContent = err.message; } return; }
   if (t.id === 'dCopy'){
     const ta = $('dJson');
     try { await navigator.clipboard.writeText(ta.value); $('dMsg').className = 'msg ok'; $('dMsg').textContent = 'Copied the level JSON. Paste it into a .json file in your repo.'; }
@@ -1556,10 +1735,10 @@ const VS_RULES = {
   startSun: 50, skySun: 25,
   startBrains: 150, brainsPerTurn: 50, brainsRampEvery: 4, brainsRamp: 25,   // brain income rises by 25 every 4 turns
   turnLimit: 30, lawnmowers: true,
-  seedPackets: ['sunflower', 'peashooter', 'wallnut'],
-  upgrades: ['repeater', 'gatling', 'twinSunflower', 'toughBark'],
+  seedPackets: ['peashooter', 'sunflower', 'cherrybomb', 'wallnut', 'potatomine', 'snowpea', 'chomper', 'repeater'],
+  upgrades: ['gatling', 'twinSunflower', 'toughBark'],
   glove: { cost: 50, cooldown: 2 },
-  zombiePackets: ['browncoat', 'conehead', 'buckethead', 'flag'],
+  zombiePackets: ['browncoat', 'conehead', 'polevault', 'buckethead', 'flag'],
   surgeCost: 25,    // each extra copy before the packet recharges costs this much more
   zombieSpeed: 1,   // versus only: every zombie moves a tile every N turns (null = each zombie's own speed)
 };
@@ -1581,17 +1760,17 @@ function vsHydrate(d, R){
   const st = { rules:R, turn:d.turn, sun:d.sun, brains:d.brains, seedCd:{...d.seedCd}, zombieCd:{...d.zombieCd}, seedSurge:{...(d.seedSurge||{})}, zombieSurge:{...(d.zombieSurge||{})}, gloveCd:d.gloveCd,
     mowers:[...d.mowers], nextId:d.nextId, lawn:Array.from({length:R.rows}, () => Array(R.cols).fill(null)), zombies:[],
     fx:freshFx(), events:[], tick:0, log:[], flash:{}, over:null };
-  for (const p of d.plants || []){ if (!PLANTS[p.type] || !(p.r >= 0 && p.r < R.rows && p.c >= 0 && p.c < R.cols)) continue; const o = new PLANTS[p.type](); o.hp = p.hp; o.maxHp = p.maxHp; o.timer = p.timer; st.lawn[p.r][p.c] = o; }
-  for (const z of d.zombies || []){ if (!ZOMBIES[z.type]) continue; const o = new ZOMBIES[z.type](z.row, z.col); Object.assign(o, { id:z.id, hp:z.hp, maxHp:z.maxHp, moveTimer:z.moveTimer }); if (R.zombieSpeed) o.speed = R.zombieSpeed; st.zombies.push(o); }
+  for (const p of d.plants || []){ if (!PLANTS[p.type] || !(p.r >= 0 && p.r < R.rows && p.c >= 0 && p.c < R.cols)) continue; const o = new PLANTS[p.type](); o.hp = p.hp; o.maxHp = p.maxHp; o.timer = p.timer; if (Number.isInteger(p.arm)) o.arm = p.arm; if (Number.isInteger(p.chew)) o.chew = p.chew; st.lawn[p.r][p.c] = o; }
+  for (const z of d.zombies || []){ if (!ZOMBIES[z.type]) continue; const o = new ZOMBIES[z.type](z.row, z.col); Object.assign(o, { id:z.id, hp:z.hp, maxHp:z.maxHp, moveTimer:z.moveTimer, chill:+z.chill || 0, vaulted:!!z.vaulted }); if (R.zombieSpeed) o.speed = R.zombieSpeed; st.zombies.push(o); }
   return st;
 }
 function vsDehydrate(st, oldLog){
   const plants = [];
-  st.lawn.forEach((row, r) => row.forEach((p, c) => { if (p) plants.push({ r, c, type:p.type, hp:p.hp, maxHp:p.maxHp, timer:p.timer }); }));
+  st.lawn.forEach((row, r) => row.forEach((p, c) => { if (p) plants.push({ r, c, type:p.type, hp:p.hp, maxHp:p.maxHp, timer:p.timer, ...p.extra() }); }));
   return { turn:st.turn, sun:st.sun, brains:st.brains, seedCd:st.seedCd, zombieCd:st.zombieCd, seedSurge:st.seedSurge, zombieSurge:st.zombieSurge, gloveCd:st.gloveCd, mowers:st.mowers, nextId:st.nextId,
-    plants, zombies:st.zombies.map(z => ({ id:z.id, type:z.type, hp:z.hp, maxHp:z.maxHp, row:z.row, col:z.col, moveTimer:z.moveTimer })),
+    plants, zombies:st.zombies.map(z => ({ id:z.id, type:z.type, hp:z.hp, maxHp:z.maxHp, row:z.row, col:z.col, moveTimer:z.moveTimer, chill:z.chill || 0, vaulted:!!z.vaulted })),
     log:[...st.log.map(x => x.m), ...(oldLog||[])].slice(0, 40),
-    events:st.events.map(e => e.kind==='pea' ? { kind:'pea', fr:e.from[0], fc:e.from[1], tr:e.to[0], tc:e.to[1], tick:e.tick, n:e.n||0 } : { kind:'sun', r:e.at[0], c:e.at[1], n:e.n, tick:e.tick }) };
+    events:st.events.map(e => e.kind==='pea' ? { kind:'pea', fr:e.from[0], fc:e.from[1], tr:e.to[0], tc:e.to[1], tick:e.tick, n:e.n||0, ice:!!e.ice } : { kind:e.kind, r:e.at[0], c:e.at[1], n:e.n || 0, radius:e.radius || 0, tick:e.tick }) };
 }
 const vsPlantPrice  = (st, k) => PLANTS[k].cost  + (st.seedSurge[k]   || 0) * (st.rules.surgeCost ?? 25);
 const vsZombiePrice = (st, k) => ZOMBIES[k].brains + (st.zombieSurge[k] || 0) * (st.rules.surgeCost ?? 25);
@@ -1847,8 +2026,10 @@ async function animateTurn(newState){
     if (motion()){
       for (const e of newState.events || []){
         const delay = e.tick * 420 + (e.n || 0) * 90;
-        if (e.kind === 'pea') flyPea([e.fr, e.fc], [e.tr, e.tc], delay);
+        if (e.kind === 'pea') flyPea([e.fr, e.fc], [e.tr, e.tc], delay, e.ice);
         if (e.kind === 'sun') floatText(e.r, e.c, `+${e.n}`, delay);
+        if (e.kind === 'boom') boomAt(e.r, e.c, e.radius, delay);
+        if (e.kind === 'chomp') floatText(e.r, e.c, 'Chomp!', delay);
       }
       if ((newState.events || []).length) await pause(500);
     }
@@ -2269,18 +2450,144 @@ $('p2pDecline').addEventListener('click', p2pDecline);
 try { const n = localStorage.getItem('bs-name'); if (n) $('p2pName').value = n; } catch {}
 $('p2pName').addEventListener('change', e => { try { localStorage.setItem('bs-name', e.target.value); } catch {} });
 
+/* =========================================================================
+   STORY MODE: the Day chapter. Each level's zombies and waves are below.
+   Finishing a level unlocks the next one, gives coins, and may unlock a plant.
+   ========================================================================= */
+const STORY_BASE = {
+  lawn:'day', rows:5, cols:12, streetCols:2, startSun:50, skySun:25, dieSides:6,
+  firstWaveTurn:4, waveTrigger:0.5, lawnmowers:true, glove:{ cost:50, cooldown:2 }, surgeCost:25, setup:[], finalWaveLeader:'flag',
+  cards:{ firstTurn:4, every:3, draw:3, freeReveals:1, revealCost:50, rerollCost:50, instantSun:500,
+    deck:{ horde:3, toughCrowd:2, doubleSpeed:2, frozenTime:2, sprint:3, gardeningAccident:2, sunDrought:2,
+           attackSpeed:2, instantSun:1, distracted:1, powerPeas:2, freshSeeds:1, mowerRepair:1 } },
+};
+const STARTER_PLANTS = ['peashooter', 'sunflower'];
+const SEED_SLOTS = 6;
+// zombies: the level's whole horde. waves: the early waves; the final wave is whatever is left.
+const STORY = [
+  { title:'Front Lawn',     reward:'cherrybomb', coins:250, zombies:{ browncoat:8, flag:1 },
+    waves:[{ browncoat:2 }, { browncoat:3 }] },
+  { title:'First Cones',    reward:'wallnut',    coins:300, zombies:{ browncoat:9, conehead:2, flag:1 },
+    waves:[{ browncoat:2 }, { browncoat:3, conehead:1 }] },
+  { title:'Hold the Line',  reward:'potatomine', coins:350, zombies:{ browncoat:10, conehead:4, flag:1 },
+    waves:[{ browncoat:3 }, { browncoat:3, conehead:1 }, { browncoat:2, conehead:2 }] },
+  { title:'Vaulters',       reward:'snowpea',    coins:400, zombies:{ browncoat:10, conehead:3, polevault:3, flag:1 },
+    waves:[{ browncoat:3 }, { browncoat:2, conehead:1, polevault:1 }, { browncoat:3, conehead:1, polevault:1 }] },
+  { title:'Cold Front',     reward:'chomper',    coins:450, zombies:{ browncoat:12, conehead:5, polevault:3, flag:1 },
+    waves:[{ browncoat:3, conehead:1 }, { browncoat:3, conehead:1, polevault:1 }, { browncoat:3, conehead:2, polevault:1 }] },
+  { title:'Buckets',        reward:'repeater',   coins:500, zombies:{ browncoat:12, conehead:5, polevault:3, buckethead:2, flag:1 },
+    waves:[{ browncoat:3, conehead:1 }, { browncoat:3, conehead:1, polevault:1 }, { browncoat:3, conehead:2, polevault:1, buckethead:1 }] },
+  { title:'Rush Hour',      reward:null,         coins:550, zombies:{ browncoat:14, conehead:6, polevault:4, buckethead:3, flag:1 },
+    waves:[{ browncoat:3, conehead:1 }, { browncoat:3, conehead:1, polevault:1 }, { browncoat:3, conehead:2, polevault:1, buckethead:1 }, { browncoat:3, conehead:1, polevault:1, buckethead:1 }] },
+  { title:'Iron Lawn',      reward:null,         coins:600, zombies:{ browncoat:14, conehead:7, polevault:4, buckethead:4, flag:1 },
+    waves:[{ browncoat:3, conehead:1 }, { browncoat:3, conehead:2, polevault:1 }, { browncoat:2, conehead:2, polevault:1, buckethead:2 }, { browncoat:3, conehead:1, polevault:1, buckethead:1 }] },
+  { title:'Last Stand',     reward:null,         coins:700, zombies:{ browncoat:16, conehead:8, polevault:5, buckethead:5, flag:1 },
+    waves:[{ browncoat:3, conehead:2 }, { browncoat:3, conehead:2, polevault:1, buckethead:1 }, { browncoat:3, conehead:2, polevault:2, buckethead:1 }, { browncoat:3, conehead:1, polevault:1, buckethead:2 }] },
+  { title:'The Big Wave',   reward:null,         coins:1000, zombies:{ browncoat:18, conehead:10, polevault:6, buckethead:6, flag:1 },
+    waves:[{ browncoat:3, conehead:2 }, { browncoat:3, conehead:2, polevault:1, buckethead:1 }, { browncoat:3, conehead:2, polevault:2, buckethead:1 }, { browncoat:3, conehead:2, polevault:1, buckethead:2 }, { browncoat:3, conehead:1, polevault:1, buckethead:1 }] },
+];
+const REPLAY_COINS = 50;
+// Shop stock: for now just the upgrades (bought once with coins, then usable in every Story level).
+const SHOP_ITEMS = [
+  { key:'twinSunflower', price:1000 },
+  { key:'gatling',       price:1500 },
+  { key:'toughBark',     price:750 },
+];
+
+/* ---------- saved progress (this browser only) ---------- */
+const PROGRESS_KEY = 'bs-story-v1';
+let PROG = { cleared:[], coins:0, owned:[], lastSeeds:[] };
+try { const raw = localStorage.getItem(PROGRESS_KEY); if (raw){ const p = JSON.parse(raw); PROG = { ...PROG, ...p }; } } catch {}
+function saveProgress(){ try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(PROG)); } catch {} }
+const unlockedPlants = () => [...STARTER_PLANTS, ...STORY.filter((L, i) => PROG.cleared.includes(i) && L.reward).map(L => L.reward)];
+const levelOpen = i => i === 0 || PROG.cleared.includes(i - 1);
+function storyLevel(i, seeds){
+  const L = STORY[i];
+  return { ...JSON.parse(JSON.stringify(STORY_BASE)), name:`Level ${i+1} · ${L.title}`, zombies:L.zombies, waves:L.waves,
+    seedPackets:seeds, upgrades:Object.keys(UPGRADES).filter(k => PROG.owned.includes(k)) };
+}
+let RUN = { kind:'custom', index:-1 };    // what the play screen is running
+let STORY_SCREEN = 'map';                // 'map' or 'game'
+
+function renderStoryMap(){
+  $('mapCoins').textContent = PROG.coins;
+  $('levelMap').innerHTML = STORY.map((L, i) => {
+    const open = levelOpen(i), done = PROG.cleared.includes(i);
+    const zs = Object.keys(L.zombies).map(k => `<span class="z ${k}" title="${ZOMBIES[k].label}">${ZOMBIES[k].short}</span>`).join('');
+    const newZ = Object.keys(L.zombies).filter(k => !STORY.slice(0, i).some(P => P.zombies[k]));
+    return `<button class="levelCard ${done ? 'done' : ''}" data-level="${i}" ${open ? '' : 'disabled'}>
+      <span class="lvNum">${done ? '✓' : open ? i + 1 : '<svg viewBox="0 0 20 20" width="16" height="16" aria-label="Locked"><rect x="4" y="9" width="12" height="9" rx="2" fill="currentColor"/><path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="currentColor" stroke-width="2" fill="none"/></svg>'}</span>
+      <span class="lvTitle">Level ${i+1}<br><b>${L.title}</b></span>
+      <span class="lvZ">${zs}</span>
+      <span class="lvInfo">${newZ.length && i ? `New: ${newZ.map(k => ZOMBIES[k].label).join(', ')}. ` : ''}${L.reward ? `Unlocks ${PLANTS[L.reward].label}.` : `${L.coins} coins.`}</span>
+    </button>`;
+  }).join('');
+  const all = PROG.cleared.length === STORY.length;
+  $('mapNote').textContent = all ? 'You cleared the Day chapter! Replay any level for coins, or try Versus and the Level editor.' : `Plants unlocked: ${unlockedPlants().map(k => PLANTS[k].label).join(', ')}.`;
+}
+function openSeedPick(i){
+  const L = STORY[i], have = unlockedPlants();
+  let picked = (PROG.lastSeeds || []).filter(k => have.includes(k));
+  for (const k of have) if (picked.length < SEED_SLOTS && !picked.includes(k)) picked.push(k);
+  picked = picked.slice(0, SEED_SLOTS);
+  const draw = () => {
+    $('pickTitle').textContent = `Level ${i+1} · ${L.title}`;
+    $('pickZombies').innerHTML = Object.entries(L.zombies).map(([k, n]) => `<span class="pickZ"><span class="z ${k}">${ZOMBIES[k].short}</span>${n} × ${ZOMBIES[k].label}</span>`).join('');
+    $('pickHelp').textContent = `Choose up to ${SEED_SLOTS} seed packets (${picked.length} chosen).`;
+    $('pickPlants').innerHTML = have.map(k => { const P = PLANTS[k], on = picked.includes(k);
+      return `<button class="packet ${on ? 'sel' : ''}" data-pick="${k}" aria-pressed="${on}" ${!on && picked.length >= SEED_SLOTS ? 'disabled' : ''} title="${P.text}">${ART[k]}<span class="nm">${P.label}</span><span class="cost"><i class="coin"></i>${P.cost}</span></button>`; }).join('');
+    $('pickStart').disabled = !picked.length;
+  };
+  $('pickPlants').onclick = e => { const b = e.target.closest('[data-pick]'); if (!b || b.disabled) return; const k = b.dataset.pick;
+    picked = picked.includes(k) ? picked.filter(x => x !== k) : [...picked, k].slice(0, SEED_SLOTS); draw(); };
+  $('pickStart').onclick = () => { $('seedPick').hidden = true; PROG.lastSeeds = picked; saveProgress(); startStoryLevel(i, picked); };
+  draw(); $('seedPick').hidden = false; $('pickStart').focus();
+}
+function startStoryLevel(i, seeds){
+  RUN = { kind:'story', index:i, seeds };
+  loadLevel(storyLevel(i, seeds));
+  showStoryScreen('game');
+}
+function showStoryScreen(which){
+  STORY_SCREEN = which;
+  $('storyMap').hidden = which !== 'map';
+  $('playView').hidden = which !== 'game';
+  $('newGame').hidden = which !== 'game';
+  $('toMap').hidden = which !== 'game';
+  $('levelName').textContent = which === 'game' ? LEVEL.name : 'Story · Day chapter';
+  if (which === 'map') renderStoryMap();
+}
+// Called once when a level ends. Returns lines for the result screen.
+function storyResult(){
+  if (RUN.kind !== 'story') return null;
+  const i = RUN.index, L = STORY[i];
+  if (S.over !== 'win') return { lines:[], next:false };
+  const first = !PROG.cleared.includes(i), coins = first ? L.coins : REPLAY_COINS, lines = [`+${coins} coins.`];
+  if (first){ PROG.cleared.push(i); if (L.reward) lines.push(`New plant: ${PLANTS[L.reward].label}!`); if (i + 1 < STORY.length) lines.push(`Level ${i+2} is open.`); }
+  PROG.coins += coins; saveProgress();
+  return { lines, next: i + 1 < STORY.length };
+}
+
+/* ---------- shop ---------- */
+function renderShop(){
+  $('shopCoins').textContent = PROG.coins;
+  $('shopItems').innerHTML = SHOP_ITEMS.map(it => { const U = UPGRADES[it.key], own = PROG.owned.includes(it.key);
+    return `<div class="shopItem ${own ? 'owned' : ''}">${ART[U.art]}<div><b>${U.label}</b><p class="note">${U.text} In Story levels it costs ${U.cost} sun to apply.</p></div>
+      <button class="btn ${own ? '' : 'primary'}" data-buy="${it.key}" ${own || PROG.coins < it.price ? 'disabled' : ''}>${own ? 'Owned' : `<i class="coin"></i> ${it.price} coins`}</button></div>`; }).join('');
+}
+
 /* ---------------- almanac: stats straight from the classes ---------------- */
 function almanacHTML(){
   const step = LEVEL?.surgeCost ?? 25, vsSpeed = VS_RULES.zombieSpeed;
   const turns = n => `${n} turn${n===1?'':'s'}`;
-  const seedKeys = ['sunflower','peashooter','wallnut'];
+  const seedKeys = SEED_PLANTS;
   const plants = seedKeys.map(k => { const P = PLANTS[k];
     return `<tr><td><span class="ic">${ART[k]}${P.label}</span></td><td>${P.cost} sun</td><td>+${step} per extra copy, back to base after ${turns(P.recharge)}</td><td>${P.maxHp}</td><td>${P.text}</td></tr>`; }).join('');
   const ups = Object.values(UPGRADES).map(U => {
-    const to = { repeater:Repeater, gatling:GatlingPea, twinSunflower:TwinSunflower }[U.key];
+    const to = { gatling:GatlingPea, twinSunflower:TwinSunflower }[U.key];
     return `<tr><td><span class="ic">${ART[U.art]}${U.label}</span></td><td>${U.cost} sun</td><td>${U.text}</td><td>${to ? to.maxHp : '+2'}</td><td>${to ? to.text : 'Stacks with other upgrades.'}</td></tr>`; }).join('');
   const zombies = Object.values(ZOMBIES).map(Z =>
-    `<tr><td><span class="ic"><span class="z ${Z.key}">${Z.short}</span>${Z.label}</span></td><td>${Z.maxHp}</td><td>${Z.bite} per turn</td><td>Every ${Z.speed===1?'turn':turns(Z.speed)}</td><td>${vsSpeed ? `Every ${vsSpeed===1?'turn':turns(vsSpeed)}` : 'Same'}</td><td>${Z.brains} brains, +${VS_RULES.surgeCost ?? 25} per extra copy, back to base after ${turns(Z.recharge)}</td></tr>`).join('');
+    `<tr><td><span class="ic"><span class="z ${Z.key}">${Z.short}</span>${Z.label}</span></td><td>${Z.maxHp}${Z.armor ? ` <span class="note">(${Z.maxHp - Z.armor} body + ${Z.armor} ${Z.key === 'conehead' ? 'cone' : 'bucket'})</span>` : ''}${Z.special ? `<br><span class="note">${Z.special}</span>` : ''}</td><td>${Z.bite} per turn</td><td>Every ${Z.speed===1?'turn':turns(Z.speed)}</td><td>${vsSpeed ? `Every ${vsSpeed===1?'turn':turns(vsSpeed)}` : 'Same'}</td><td>${Z.brains} brains, +${VS_RULES.surgeCost ?? 25} per extra copy, back to base after ${turns(Z.recharge)}</td></tr>`).join('');
   const cards = tone => Object.values(CARDS).filter(C => C.tone === tone).map(C => `<tr><td>${C.label}</td><td>${C.text}</td></tr>`).join('');
   return `
     <section><h3>Plants</h3><div class="tableWrap"><table class="alm"><thead><tr><th>Plant</th><th>Cost</th><th>Price rise</th><th>Health</th><th>What it does</th></tr></thead><tbody>${plants}</tbody></table></div></section>
@@ -2288,7 +2595,7 @@ function almanacHTML(){
     <section><h3>Zombies</h3><div class="tableWrap"><table class="alm"><thead><tr><th>Zombie</th><th>Health</th><th>Bite</th><th>Moves (single player)</th><th>Moves (versus)</th><th>Versus cost</th></tr></thead><tbody>${zombies}</tbody></table></div></section>
     <section><h3>Hazard cards</h3><div class="tableWrap"><table class="alm"><tbody>${cards('hazard')}</tbody></table></div></section>
     <section><h3>Buff cards</h3><div class="tableWrap"><table class="alm"><tbody>${cards('boon')}</tbody></table></div></section>
-    <p class="note">Peashooters hit the nearest zombie ahead in their row. Zombies bite the plant in front of them every turn instead of moving. A zombie that eats a plant stays where it is until its next move.</p>`;
+    <p class="note">Health is counted in pea hits: a Peashooter does 1 per pea. Peashooters hit the nearest zombie ahead in their row. Zombies bite the plant in front of them every turn instead of moving. A zombie that eats a plant stays where it is until its next move.</p>`;
 }
 $('openAlmanac').addEventListener('click', () => { if (S.busy) return; $('almanacBody').innerHTML = almanacHTML(); $('almanac').hidden = false; $('closeAlmanac').focus(); });
 $('closeAlmanac').addEventListener('click', () => { $('almanac').hidden = true; });
@@ -2298,17 +2605,34 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('almana
 /* ---------------- tabs ---------------- */
 function showTab(which){
   if (S.busy) return;
-  ['play','versus','design'].forEach(t => {
-    $({play:'playView', versus:'versusView', design:'designView'}[t]).hidden = t !== which;
-    $({play:'tabPlay', versus:'tabVersus', design:'tabDesign'}[t]).setAttribute('aria-selected', t === which);
-  });
-  $('newGame').hidden = which !== 'play';
-  $('levelName').textContent = which === 'versus' ? 'Online versus · Plants against Zombies' : LEVEL.name;
+  const views = { story:['storyMap','playView'], versus:['versusView'], shop:['shopView'], design:['designView'] };
+  const tabs = { story:'tabPlay', versus:'tabVersus', shop:'tabShop', design:'tabDesign' };
+  Object.values(views).flat().forEach(id => $(id).hidden = true);
+  Object.entries(tabs).forEach(([t, id]) => $(id).setAttribute('aria-selected', t === which));
+  $('newGame').hidden = $('toMap').hidden = true;
+  if (which === 'story') showStoryScreen(STORY_SCREEN);
+  else { $(views[which][0]).hidden = false; $('levelName').textContent = { versus:'Versus · Plants against Zombies', shop:'Shop', design:'Level editor' }[which]; }
   if (which === 'design') openDesigner(LEVEL);
   if (which === 'versus') vsInit();
+  if (which === 'shop') renderShop();
 }
-$('tabPlay').addEventListener('click', () => showTab('play'));
+$('tabPlay').addEventListener('click', () => showTab('story'));
 $('tabVersus').addEventListener('click', () => showTab('versus'));
+$('tabShop').addEventListener('click', () => showTab('shop'));
 $('tabDesign').addEventListener('click', () => showTab('design'));
+$('levelMap').addEventListener('click', e => { const b = e.target.closest('[data-level]'); if (b && !b.disabled) openSeedPick(+b.dataset.level); });
+$('pickCancel').addEventListener('click', () => { $('seedPick').hidden = true; });
+$('shopItems').addEventListener('click', e => {
+  const b = e.target.closest('[data-buy]'); if (!b || b.disabled) return;
+  const it = SHOP_ITEMS.find(x => x.key === b.dataset.buy); if (!it || PROG.coins < it.price || PROG.owned.includes(it.key)) return;
+  PROG.coins -= it.price; PROG.owned.push(it.key); saveProgress(); renderShop();
+});
+let mapArmed = 0;
+$('toMap').addEventListener('click', () => {
+  if (S.busy) return;
+  if (!S.over && Date.now() - mapArmed > 3000){ mapArmed = Date.now(); $('toMap').textContent = 'Leave this level?'; setTimeout(() => $('toMap').textContent = 'Level map', 3000); return; }
+  $('toMap').textContent = 'Level map'; $('overlay').hidden = true; showStoryScreen('map');
+});
 loadLevel(JSON.parse(DEFAULT_TEXT));
+showTab('story');
 </script>
